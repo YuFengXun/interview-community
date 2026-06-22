@@ -1,28 +1,30 @@
 server:
   port: 8080
 
-#  - datasource — MySQL 连接配置，interview_community 是数据库名
+#   datasource — MySQL 连接配置，interview_community 是数据库名
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/interview_community?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-
-#  - redis — Redis 连接配置（先写上，后面学到 Redis 时才用）
-    data:
-      redis:
-        host: localhost
-        port: 6379
-
-#  - mybatis-plus — 开启日志、自动驼峰映射、逻辑删除
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+#   redis — Redis 连接配置（先写上，后面学到 Redis 时才用）
+#   mybatis-plus — 开启日志、自动驼峰映射、逻辑删除
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-        id-type: auto
-        logic-delete-field: deleted
-        logic-delete-value: 1
-        logic-not-delete-value: 0
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: interview-community-secret-key-2024-this-is-a-long-key
+  expiration: 86400000    # 24小时，单位毫秒
