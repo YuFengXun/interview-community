@@ -3,6 +3,7 @@ package com.community.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 帖子列表展示对象
@@ -26,4 +27,6 @@ public class PostVO {
     // 额外查询出来的展示字段
     private String authorNickname;
     private String categoryName;
+
+    private List<String> tagNames;  // 新增：标签名称列表
 }

@@ -23,4 +23,8 @@ public interface PostService {
 
     IPage<PostVO> listPosts(int page,int size,Long categoryId);
 
+    IPage<PostVO> searchByTitle(String keyword, int page, int size); // 按标题搜索，带分页
+
+    IPage<PostVO> listHotPosts(int page, int size);// 获取最热帖子，带分页
+
 }

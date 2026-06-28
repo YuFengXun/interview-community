@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * community@NotBlank 和 @Size 是参数校验注解，
  * Spring 在进入 Controller 之前就会校验，不通过直接返回 400
@@ -21,4 +23,6 @@ public class CreatePostRequest {
     private String content;
 
     private Long categoryId; //分类Id
+
+    private List<Long> tagIds;  //新增：标签ID列表，创建帖子时可选
 }

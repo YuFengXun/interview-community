@@ -3,6 +3,7 @@ package com.community.common;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * 全局异常处理
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * MethodArgumentNotValidException — @Valid 校验不通过时 Spring 自动抛这个异常，我们提取第一条错误消息返回给前端，而不是返回 500
  * 未知异常打印堆栈方便排查，但给前端只返回通用提示，不泄露内部信息
  */
+@RestControllerAdvice // 全局异常处理
 public class GlobalExceptionHandler {
 
     // 业务异常：RuntimeException

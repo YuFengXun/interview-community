@@ -23,7 +23,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/user/register", "/api/user/login").permitAll()  // 放行测试接口 — 该接口不需要登录就能访问
-                        .requestMatchers("/api/post/**").permitAll()
+                        .requestMatchers("/api/post/**", "/api/comment/**", "/api/category/**" , "/api/tag/**").permitAll()
                         .anyRequest().authenticated() //— 其他接口后续再逐个配置
 
                 )

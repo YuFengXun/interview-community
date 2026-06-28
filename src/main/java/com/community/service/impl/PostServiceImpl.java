@@ -5,16 +5,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.dto.CreatePostRequest;
 import com.community.dto.PostVO;
-import com.community.entity.Category;
-import com.community.entity.Post;
-import com.community.entity.User;
-import com.community.mapper.CategoryMapper;
-import com.community.mapper.PostMapper;
-import com.community.mapper.UserMapper;
+import com.community.entity.*;
+import com.community.mapper.*;
 import com.community.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,8 @@ public class PostServiceImpl implements PostService {
     private final PostMapper postMapper;
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper; // 这里需要注入
+    private final PostTagMapper postTagMapper;
+    private final TagMapper tagMapper;
 
 /**
  * 把 Post 转成 PostVO
@@ -40,6 +42,18 @@ public class PostServiceImpl implements PostService {
         // 查分类名称
         Category category = categoryMapper.selectById(post.getCategoryId());
         if (category != null) vo.setCategoryName(category.getName());
+        // 查标签名称列表
+        List<PostTag> postTags = postTagMapper.selectList(
+                new QueryWrapper<PostTag>().eq("post_id",
+                        post.getId()));
+        List<String> tagNames = postTags.stream()
+                .map(pt -> {
+                    Tag tag = tagMapper.selectById(pt.getTagId());
+                    return tag != null ? tag.getName() : null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        vo.setTagNames(tagNames);
 
         return vo;
     }
@@ -56,6 +70,16 @@ public class PostServiceImpl implements PostService {
         post.setViewCount(0);  // 默认为0
         post.setLikeCount(0); // 默认为0
         postMapper.insert(post); // 插入数据库
+        // 处理标签关联
+        if (request.getTagIds() != null &&
+                !request.getTagIds().isEmpty()) {
+            for (Long tagId : request.getTagIds()) {
+                PostTag postTag = new PostTag();
+                postTag.setPostId(post.getId());
+                postTag.setTagId(tagId);
+                postTagMapper.insert(postTag);
+            }
+        }
         return toPostVO(post);  // 返回VO
     }
     /**
@@ -89,6 +113,21 @@ public class PostServiceImpl implements PostService {
         post.setContent(request.getContent());
         post.setCategoryId(request.getCategoryId());
         postMapper.updateById(post);
+
+        // 处理标签关联
+        // 先删除旧的标签关联，再插入新的
+        postTagMapper.delete(new
+                QueryWrapper<PostTag>().eq("post_id", id));
+        if (request.getTagIds() != null &&
+                !request.getTagIds().isEmpty()) {
+            for (Long tagId : request.getTagIds()) {
+                PostTag postTag = new PostTag();
+                postTag.setPostId(id);
+                postTag.setTagId(tagId);
+                postTagMapper.insert(postTag);
+            }
+        }
+
         return toPostVO(post);
     }
     /**
@@ -117,6 +156,32 @@ public class PostServiceImpl implements PostService {
         if (categoryId != null) {wrapper.eq("category_id", categoryId);} // 按分类过滤
         IPage<Post> postPage = postMapper.selectPage(pageRequest, wrapper);
         return postPage.convert(this::toPostVO); // 把 Post 转成 PostVO
+    }
+    /**
+     * 按标题搜索帖子
+     * 模糊匹配，匹配标题或内容
+     */
+    @Override
+    public IPage<PostVO> searchByTitle(String keyword, int page, int size) {
+        Page< Post> pageRequest = new Page<>(page,size); // 创建分页对象, 默认从第一页开始
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();  // 创建查询条件, 按创建时间倒序
+        wrapper.like("title", keyword).orderByDesc("created_at"); // 按标题模糊匹配, 按创建时间倒序
+        IPage<Post> postPage= postMapper.selectPage(pageRequest, wrapper);// 查询
+        return postPage.convert(this::toPostVO);// 把 Post 转成 PostVO, 返回
+
+    }
+    /**
+     * 热门帖子列表
+     * 按点赞数排序, 返回前10条
+     * orderByDesc 传多个字段名，逗号分隔。相当于 ORDER BY view_count DESC, created_at DESC。
+     */
+    @Override
+    public IPage<PostVO> listHotPosts(int page, int size) {
+        Page< Post> pageRequest = new Page<>(page,size); // 创建分页对象, 默认从第一页开始
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();  // 创建查询条件, 按创建时间倒序
+        wrapper.orderByDesc("view_count", "created_at"); // 按浏览数排序, 按创建时间倒序
+        IPage<Post> postPage= postMapper.selectPage(pageRequest, wrapper);// 查询, 返回
+        return postPage.convert(this::toPostVO);
     }
 
 }
