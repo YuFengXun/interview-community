@@ -63,6 +63,25 @@ public class PostController {
     }
 
     /**
+     * 按标题搜索帖子
+     */
+    @GetMapping("/search")
+    public Result<?> search(@RequestParam String keyword,
+                            @RequestParam(defaultValue = "1") int page,
+                            @RequestParam(defaultValue = "10") int size) {
+        return Result.success(postService.searchByTitle(keyword, page, size));
+    }
+
+    /**
+     * 热门帖子排行榜（按浏览量排序）
+     */
+    @GetMapping("/hot")
+    public Result<?> hot(@RequestParam(defaultValue = "1") int page,
+                         @RequestParam(defaultValue = "10") int size) {
+        return Result.success(postService.listHotPosts(page, size));
+    }
+
+    /**
      * 获取当前用户ID
      */
     private Long getCurrentUserId() {
